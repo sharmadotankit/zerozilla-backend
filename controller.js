@@ -114,22 +114,91 @@ const login = async(req,res)=>{
 
 }
 
-const createAgencyAndClient = (req, res) => {
+const createAgencyAndClient = async(req, res) => {
   try {
+    let data = req.body;
+    let agencyData = data.agencyData;
+    let clientsData = data.clientsData;
+
+    if(!agencyData.agencyName || !agencyData.address1||!agencyData.city||!agencyData.state||!agencyData.phoneNumber){
+      throw{
+        message:"One of mandatory data is missing. Mandatory data are agencyName,address1,state,city and phone Number",
+      }
+    }
+
+    if(clientsData.length==0){
+      throw{
+        message:"No client is added for agency",
+      }
+    }
+
+    clientsData.forEach(item=>{
+      if(!item.clientName || !item.email||!item.phoneNumber||!item.totalBill){
+        throw{
+          message:"One of mandatory data is missing for one of the clients. Mandatory data are clientName,email,phoneNumber and totalBill ",
+        }
+      }
+    })
+
+    const agencyResponse = await AgencyModel.create({...agencyData});
+    let agencyId = agencyResponse._id;
+
+    clientsData.forEach(async(item)=>{
+      await ClientModel.create({...item,agencyId});
+    })
+
+    res.status(201).json({
+      status:true,
+      statusCode:201,
+      message:"Agency and Clients created successfully",
+  })
+
+
   } catch (err) {
     res.status(400).json({
       status:false,
       statusCode:400,
       message:"Something went wrong while creating agency and client",
-      error:err,
+      error:err.message,
   })
   }
 };
 
-const updateClient = (req, res) => {
+const updateClient = async(req, res) => {
   try {
-  } catch (err) {
+    let data = req.body;
 
+    let clientId = data.clientId;
+    if(!clientId){
+      throw{
+        message:"Required parameter missing : clientId"
+      }
+    }
+
+    let clientData = await ClientModel.findById(clientId);
+    if(!clientData){
+      throw{
+        message:"Invalid clientId"
+      }
+    }
+
+    if(!data.clientName || !data.email||!data.phoneNumber||!data.totalBill){
+      throw{
+        message:"One of mandatory data is missing for one of the clients. Mandatory data are clientName,email,phoneNumber and totalBill ",
+      }
+    }
+
+    delete data.clientId
+    let updatedResponse =  await ClientModel.findByIdAndUpdate(clientId,{...data},{new:true});
+
+    res.status(200).json({
+        status:true,
+        statusCode:200,
+        data:updatedResponse,
+        message:"Client updated successfully",
+    })
+  } catch (err) {
+    console.log("err",err)
     res.status(400).json({
       status:false,
       statusCode:400,
@@ -140,9 +209,41 @@ const updateClient = (req, res) => {
   }
 };
 
-const getTopClientForAgency = (req, res) => {
+const getTopClientForAgency = async(req, res) => {
   try {
+    let agencyId = req.params.agencyId;
+    if(!agencyId){
+      throw{
+        message:"Required parameter missing : agency Id"
+      }
+    }
+    const agencyResponse = await AgencyModel.findById(agencyId);
+    if(!agencyResponse){
+      throw{
+        message:"Invalid agency id"
+      }
+    }
+    const maxTotalBillClient = await ClientModel
+      .findOne({ agencyId })
+      .sort({ totalBill: -1 })
+
+      if(!maxTotalBillClient){
+        res.status(200).json({
+          status:true,
+          statusCode:200,
+          data:null,
+          message:"No client found",
+      })
+      }
+      res.status(200).json({
+        status:true,
+        statusCode:200,
+        data:maxTotalBillClient,
+        message:"Top client fetch successfully",
+    })
+
   } catch (err) {
+    console.log('err',err)
     res.status(400).json({
       status:false,
       statusCode:400,

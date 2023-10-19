@@ -6,13 +6,14 @@ const ClientSchema = new Schema({
             type: mongoose.Types.ObjectId,
             ref: "agency"
         },
-        name: {
+        clientName: {
             type: String,
             required:true,
         },
         email: {
             type: String,
             required:true,
+            unique:true
         },
         phoneNumber: {
             type: String,

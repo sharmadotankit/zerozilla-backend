@@ -2,9 +2,10 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const AgencySchema = new Schema({
-        name: {
+        agencyName: {
             type: String,
             required: true,
+            unique:true,
         },
         address1: {
             type: String,

@@ -21,9 +21,9 @@ app.post('/create-user',[
 ],controller.createUser);
 app.post('/login',controller.login);
 
-app.post('create-agency-client',checkIfUser,controller.createAgencyAndClient);
+app.post('/create-agency-client',checkIfUser,controller.createAgencyAndClient);
 app.put('/update-client',checkIfUser,controller.updateClient);
-app.get('/get-top-client-for-agency',checkIfUser,controller.getTopClientForAgency);
+app.get('/get-top-client-for-agency/:agencyId',checkIfUser,controller.getTopClientForAgency);
 
 app.get('/',(req,res)=>{
     res.status(200).send("Hi from server")
