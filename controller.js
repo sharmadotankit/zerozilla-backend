@@ -145,13 +145,13 @@ const createAgencyAndClient = async(req, res) => {
 
     clientsData.forEach(async(item)=>{
       await ClientModel.create({...item,agencyId});
-    })
+    });
 
     res.status(201).json({
-      status:true,
-      statusCode:201,
-      message:"Agency and Clients created successfully",
-  })
+        status:true,
+        statusCode:201,
+        message:"Agency and Clients created successfully",
+    })
 
 
   } catch (err) {
