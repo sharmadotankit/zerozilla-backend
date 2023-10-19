@@ -1,4 +1,10 @@
 const UserModel = require("./Models/User");
+const AgencyModel = require("./Models/Agency");
+const ClientModel = require("./Models/Client");
+const {  validationResult } = require('express-validator');
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken');
+const JET = process.env.JWT_SECRET;
 
 const createUser = async (req, res) => {
   try {
@@ -41,6 +47,7 @@ const createUser = async (req, res) => {
     );
 
     delete jwtUserResponse.token;
+    delete jwtUserResponse.password;
 
     res.status(201).json({
       status: true,
@@ -56,19 +63,94 @@ const createUser = async (req, res) => {
   }
 };
 
+const login = async(req,res)=>{
+    try{
+        let {email,password}=req.body;
+        if(!email || !password){
+            res.status(401).json({
+                status:false,
+                statusCode:401,
+                message:"Invalid email and password provided"
+            })
+        }
+        let user = await UserModel.findOne({email});
+
+        if(!user){
+            throw{
+                message:"Email is not registered."
+            }
+          }
+
+        let passwordCompare = await bcrypt.compare(password,user.password)
+        if(!passwordCompare){
+            throw { message: "Wrong Credentials" };
+        }
+        let data ={
+            user:{
+                id:user._id,
+                email: user.email,
+            }
+        }
+
+        let jwtOptions = { expiresIn: '720h' }
+
+        let authToken = jwt.sign(data,JET,jwtOptions);
+        let jwtUserResponse = await UserModel.findOneAndUpdate({_id:user._id},{token:authToken},{new:true}).select('-password');;
+
+        res.status(200).json({
+            status:true,
+            statusCode:200,
+            message:"Login Successful",
+            data:jwtUserResponse,
+        })
+    }catch(err){
+        res.status(400).json({
+            status:false,
+            statusCode:400,
+            message:err.message,
+            error:err,
+        })
+    }
+
+}
+
 const createAgencyAndClient = (req, res) => {
   try {
-  } catch (err) {}
+  } catch (err) {
+    res.status(400).json({
+      status:false,
+      statusCode:400,
+      message:"Something went wrong while creating agency and client",
+      error:err,
+  })
+  }
 };
 
 const updateClient = (req, res) => {
   try {
-  } catch (err) {}
+  } catch (err) {
+
+    res.status(400).json({
+      status:false,
+      statusCode:400,
+      message:"Something went wrong while updating client",
+      error:err,
+  })
+
+  }
 };
 
 const getTopClientForAgency = (req, res) => {
   try {
-  } catch (err) {}
+  } catch (err) {
+    res.status(400).json({
+      status:false,
+      statusCode:400,
+      message:"Something went wrong while getting top client",
+      error:err,
+  })
+
+  }
 };
 
 module.exports = {
@@ -76,4 +158,5 @@ module.exports = {
   createAgencyAndClient,
   updateClient,
   getTopClientForAgency,
+  login,
 };

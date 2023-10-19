@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const AgencySchema = new Schema({
+const ClientSchema = new Schema({
         agencyId: {
             type: mongoose.Types.ObjectId,
             ref: "agency"
@@ -27,5 +27,5 @@ const AgencySchema = new Schema({
     {timestamps:true}
 );
 
-const Agency = mongoose.model('agency', AgencySchema);
-module.exports = Agency;
+const Client = mongoose.model('client', ClientSchema);
+module.exports = Client;

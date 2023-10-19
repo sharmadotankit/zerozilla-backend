@@ -6,6 +6,9 @@ const app = express();
 app.use(cors());
 const { body } = require('express-validator');
 const controller = require('./controller');
+const checkIfUser = require('./helper').checkIfUser;
+app.use(express.json());
+app.use(bodyParser.json());
 
 
 const connectToMongo = require("./db");
@@ -16,11 +19,15 @@ app.post('/create-user',[
     body('email','Email must be a valid email').isEmail(),
     body('password','Password must be at least 5 characters').isLength({ min: 5 }),
 ],controller.createUser);
+app.post('/login',controller.login);
 
-app.post('create-agency-client',controller.createAgencyAndClient);
-app.put('update-client',controller.updateClient);
-app.get('/get-top-client-for-agency',controller.getTopClientForAgency);
+app.post('create-agency-client',checkIfUser,controller.createAgencyAndClient);
+app.put('/update-client',checkIfUser,controller.updateClient);
+app.get('/get-top-client-for-agency',checkIfUser,controller.getTopClientForAgency);
 
+app.get('/',(req,res)=>{
+    res.status(200).send("Hi from server")
+})
 
 
 let port = process.env.PORT;
